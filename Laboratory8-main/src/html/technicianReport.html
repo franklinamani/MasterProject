@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Top Piano Technicians</title>
+    <link rel="stylesheet" type="text/css" href="lab.css">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    
+      google.charts.load('current', {packages:["corechart","table"]});
+
+      google.charts.setOnLoadCallback(initialize);
+      google.charts.setOnLoadCallback(drawChart);
+
+      function initialize() {
+        $("#nTechs").change(drawChart);
+      }
+
+      function drawChart() {
+        jsonData = $.ajax({
+            url: "technicianJSON.php?n="+$("#nTechs").val(),
+            dataType: "json",
+            async: false
+            }).responseText;
+          
+        $('#JSON_text').val(jsonData);
+        
+        var data = new google.visualization.arrayToDataTable(JSON.parse(jsonData),false);
+        data.addColumn('number', data.getColumnLabel(1));
+        for(i=0;i<data.getNumberOfRows();i++) {
+          data.setValue(i,2,Number(data.getValue(i,1)));
+        }
+        data.removeColumn(1);
+
+
+        var options = {
+          title: 'Top Piano Technicians',
+          height: 400,
+          width: 800,
+          bar: {groupWidth: "95%"},
+          chartArea: {width: '50%', height: '90%'},
+          legend: { position: "none" },
+          hAxis: {
+           title: 'Number of Inspections',
+           minValue: 0
+          },
+          vAxis: {
+           title: 'Technician'
+          }
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+          
+        var table = new google.visualization.Table(document.getElementById('table_div'));
+        table.draw(data, {allowHtml:true,showRowNumber: false, width: '100%', height: '100%'});
+      }
+        
+        function showJSON() {
+           $(".text-hidden").toggleClass("text");
+           if ($("#JSON_link").text() == "Hide Data ...")
+             $("#JSON_link").text("Show Data ...");
+           else
+             $("#JSON_link").text("Hide Data ...");
+        }
+    </script>
+  </head>
+   <body>
+     <div id="column_left">   <a href="#" onclick="drawChart();return false;">Reload Data ...</a></div>
+     <div id="column_right">  <a id="JSON_link" href="#" onclick="showJSON();return false;">Show Data ...</a></div>
+     <div id="column_center"> Number of Technicians: <input id="nTechs" type="text" value=5> </div>
+     <div id="chart_div"></div>
+     <div id="table_div"></div>
+     <textarea readonly id="JSON_text" class="text-hidden"></textarea>
+   </body>
+ </html>

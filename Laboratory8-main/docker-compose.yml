@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+
+  # Builds server image and runs as container: cmpt310_www
+  www:
+    build: ./www
+    platform: linux/x86_64
+
+    ports:
+      # 8080 is an alternative port for http to run the web server
+      - "8080:80"
+
+    depends_on:
+      # Web server is connected to the database container
+      - db
+
+    volumes:
+      - ./src/html:/html
+      - ./src/sql:/sql
+
+    # Server container name
+    container_name: cmpt310_www
+
+  # Builds database image and runs as container: cmpt310_db
+  db:
+    build: ./db
+    platform: linux/x86_64
+
+    # Port for MySQL Database System
+    ports:
+      - "3306:3306"
+
+    # Environment variables to access the database
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=TRUE
+      - MYSQL_USER=cmpt310
+      - MYSQL_DATABASE=Lab8
+      - TZ=America/Edmonton
+      - LANG=en_CA.UTF-8
+
+      # YOU NEED TO SET THIS PASSWORD (you can use pwgen)
+      - MYSQL_PASSWORD=REPLACE_ME
+
+    volumes:
+      - ./src/sql:/sql-initdb.d
+
+    # Database container name
+    container_name: cmpt310_db

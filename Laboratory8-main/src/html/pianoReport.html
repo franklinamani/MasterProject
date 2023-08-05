@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <title>Piano Model Sales by Year</title>
+    <link rel="stylesheet" type="text/css" href="lab.css">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    
+      google.charts.load('current', {packages:["corechart","table"]});
+
+      google.charts.setOnLoadCallback(initialize);
+      google.charts.setOnLoadCallback(drawChart);
+
+      function initialize() {
+        $("#nModels").change(drawChart);
+        $("#startYear").change(drawChart);
+        $("#endYear").change(drawChart);
+      }
+
+      function drawChart() {
+        
+        jsonData = $.ajax({
+            url: "pianoJSON.php?n="+$("#nModels").val()+"&start="+$("#startYear").val()+"&end="+$("#endYear").val(),
+            dataType: "json",
+            async: false
+            }).responseText;
+          
+        $('#JSON_text').val(jsonData);
+        
+        var dataBefore = new google.visualization.arrayToDataTable(JSON.parse(jsonData),false);
+        var data = new google.visualization.DataTable();
+        data.addColumn('string','Year');
+        var years = dataBefore.getDistinctValues(1);
+        modelNameRows = dataBefore.getFilteredRows([{column: 1, value: years[0]}]);
+        models=[];
+        for (i in modelNameRows) {
+          models.push(dataBefore.getValue(modelNameRows[i],0));
+          data.addColumn('number',dataBefore.getValue(modelNameRows[i],0));
+        }
+
+        for (j in years) {
+          row = [years[j]];
+          for (i in models) {
+            row.push(Number(dataBefore.getValue(dataBefore.getFilteredRows([{column: 0, value: models[i]}, {column: 1, value: years[j]}])[0],2)));
+          }
+          data.addRow(row);
+        }
+
+        var options = {
+          title: 'Piano Model Sales by Year',
+          height: 400,
+          width: 800,
+          // bar: {groupWidth: "95%"},
+
+          chartArea: {width: '75%', height: '75%'},
+          legend: { position: "bottom" },
+          hAxis: {
+            title: 'Year',
+          },
+          isStacked: true,
+          vAxis: {
+            title: 'Number of Pianos Manufactured',
+            minValue: 0
+          }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+          
+        var table = new google.visualization.Table(document.getElementById('table_div'));
+        table.draw(data, {allowHtml:true,showRowNumber: false, width: '100%', height: '100%'});
+      }
+        
+        function showJSON() {
+           $(".text-hidden").toggleClass("text");
+           if ($("#JSON_link").text() == "Hide Data ...")
+             $("#JSON_link").text("Show Data ...");
+           else
+             $("#JSON_link").text("Hide Data ...");
+        }
+    </script>
+  </head>
+  <body>
+    <div id="column_left">   <a href="#" onclick="drawChart();return false;">Reload Data ...</a></div>
+    <div id="column_right">  <a id="JSON_link" href="#" onclick="showJSON();return false;">Show Data ...</a></div>
+    <div id="column_center"> 
+      Number of Models: <input id="nModels" type="text" value="5">
+      Start Year: <input id="startYear" type="text" value="2015">
+      End Year: <input id="endYear" type="text" value="2020">
+    </div>
+    <div id="chart_div"></div>
+    <div id="table_div"></div>
+    <textarea readonly id="JSON_text" class="text-hidden"></textarea>
+  </body>
+</html>
