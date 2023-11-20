@@ -1,6 +1,6 @@
 --
 --  AMANI SAFARI FRANKLIN
---  YOUR ID HERE!
+--
 -- 
 --  lab8.sql
 -- Organizational_Chart('title')
